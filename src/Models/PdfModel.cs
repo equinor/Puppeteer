@@ -5,6 +5,6 @@ namespace Puppeteer.Models
     public class PdfModel
     {
         [Required]
-        public string Html { get; set; }
+        public string html { get; set; }
     }
 }

@@ -10,9 +10,7 @@ module.exports = async function (result, html) {
     const htmlFileName = await writeFile(html);
 
     const pdfFiles = [
-        path.join(__dirname, '..', 'PdfContent', 'front.html'),
         htmlFileName,
-        path.join(__dirname, '..', 'PdfContent', 'back.html')
     ];
 
     const browser = await createBrowser();
@@ -29,7 +27,7 @@ async function writeFile(html) {
     var tempHtmlFile = tmp.fileSync({
         postfix: ".html"
     });
-
+    +
     await fs.writeFile(tempHtmlFile.name, html, (err) => {
         if (err) throw err;
         console.log('The file has been saved!');

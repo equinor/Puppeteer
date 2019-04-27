@@ -3,11 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Puppeteer", "src\Puppeteer\Puppeteer.csproj", "{364606A6-D136-40D5-A813-F2D824A851A3}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B864A339-5D46-4B40-BF2B-14AB16802345}"
-EndProject
-Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{3687A37F-47DD-4FCE-B15B-AFD02390BD90}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Puppeteer", "src/Puppeteer.csproj", "{364606A6-D136-40D5-A813-F2D824A851A3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

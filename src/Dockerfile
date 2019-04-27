@@ -13,6 +13,11 @@ RUN curl -SL "$NODE_DOWNLOAD_URL" --output nodejs.tar.gz \
 # See https://crbug.com/795759
 RUN apt-get update && apt-get install -yq libgconf-2-4
 
+
+#pdf2png support
+#https://www.npmjs.com/package/pdf-image
+RUN apt-get install -y imagemagick ghostscript poppler-utils
+
 # Install latest chrome dev package and fonts to support major charsets (Chinese, Japanese, Arabic, Hebrew, Thai and a few others)
 # Note: this installs the necessary libs to make the bundled version of Chromium that Puppeteer
 # installs, work.
@@ -26,6 +31,9 @@ RUN apt-get update && apt-get install -y wget gnupg2 pdftk --no-install-recommen
     && apt-get purge --auto-remove -y curl \
     && rm -rf /src/*.deb
 
+
+
+
 # It's a good idea to use dumb-init to help prevent zombie chrome processes.
 ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 /usr/local/bin/dumb-init
 RUN chmod +x /usr/local/bin/dumb-init
@@ -33,17 +41,20 @@ WORKDIR /app
 EXPOSE 80
 
 FROM microsoft/aspnetcore-build:2.0 AS build
+
 WORKDIR /src
-COPY *.sln ./
-COPY src/Puppeteer/Puppeteer.csproj src/Puppeteer/
-RUN dotnet restore
 COPY . .
-WORKDIR /src/src/Puppeteer
+
+
+RUN dotnet restore
+
 RUN dotnet build -c Release -o /app
+
 
 FROM build AS publish
 RUN dotnet publish -c Release -o /app
 WORKDIR /app
+
 RUN npm install
 
 FROM base AS final
