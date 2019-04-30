@@ -5,14 +5,19 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.NodeServices;
-using Puppeteer.Models;
+using madpdf.Models;
 using Microsoft.AspNetCore.Http;
 using System.Reflection;
+using Microsoft.AspNetCore.Authorization;
 
-namespace Puppeteer.Controllers
+namespace madpdf.Controllers.v1
 {
-    [Route("api/v1/[controller]")]
-    public class PdfController : Controller
+    [Authorize]
+    [ApiVersion("1.0")]
+    [Route("api/v{api-version:apiVersion}/[controller]")]
+    [Produces("application/json")]
+    [ApiController]
+    public class PdfController : ControllerBase
     {
         private readonly INodeServices _nodeServices;
 
@@ -26,9 +31,18 @@ namespace Puppeteer.Controllers
         [Route("Html2Pdf")]
         public async Task<IActionResult> Html2Pdf([FromBody] PdfModel model)
         {
-            var stream = await _nodeServices.InvokeAsync<Stream>("./Node/htmlToPdf.js", model.html);
+            try
+            {
+                var pdfPath = await _nodeServices.InvokeAsync<string>("./Node/htmlToPdf.js", model.html, model.config);
+                var bytes = System.IO.File.ReadAllBytes(pdfPath);
+                return File(bytes, "application/pdf");
+            }
+            catch (Exception)
+            {
+            }
 
-            return File(stream, "application/pdf");
+            return BadRequest();
+           
         }
 
 
@@ -49,13 +63,14 @@ namespace Puppeteer.Controllers
                     System.IO.Directory.CreateDirectory(path);
                 }
 
-                var file = path + "test.pdf";
+                var file = path + Guid.NewGuid().ToString("N") + ".pdf";
 
                 System.IO.File.WriteAllBytes(file, ms.ToArray());
 
                 var img = await _nodeServices.InvokeAsync<string>("./Node/pdfToImage.js", file, page, dpi);
 
                 var bytes = System.IO.File.ReadAllBytes(img);
+                System.IO.File.Delete(img);
                 return File(bytes, "image/png");
 
             }

@@ -21,8 +21,6 @@ module.exports = function (result, file, page, dpi) {
       });
     pdfImage.convertPage(page).then(function (imagePath) {
         result(null, imagePath);
-        // 0-th page (first page) of the slide.pdf is available as slide-0.png
-        //fs.existsSync("/tmp/slide-0.png") // => true
     });
 
     

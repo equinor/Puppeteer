@@ -5,22 +5,16 @@ const fileUrl = require('file-url');
 const PDFMerge = require('pdf-merge');
 const path = require('path');
 
-module.exports = async function (result, html) {
+module.exports = async function (result, html, config) {
 
     const htmlFileName = await writeFile(html);
 
-    const pdfFiles = [
-        htmlFileName,
-    ];
-
     const browser = await createBrowser();
-    
-    const pdfPaths = await createPdfs(browser, pdfFiles);
-    
-    await browser.close();
+    const pdfPath = await createPdf(browser, htmlFileName, config);
 
-    PDFMerge(pdfPaths, { output: 'Stream' })
-        .then((stream) => { stream.pipe(result.stream); });
+
+    await browser.close();
+    await result(null, pdfPath);
 };
 
 async function writeFile(html) {
@@ -50,7 +44,7 @@ function createPdfs(browser, pages) {
     );
 }
 
-async function createPdf(browser, fileName) {
+async function createPdf(browser, fileName, config) {
     const page = await browser.newPage();
 
     await page.goto(fileUrl(fileName), {
@@ -58,16 +52,9 @@ async function createPdf(browser, fileName) {
     });
 
     const tmpPdfFileName = tmp.tmpNameSync() + ".pdf";
-
     await page.pdf({
         path: tmpPdfFileName,
-        format: 'A4',
-        margin: {
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0
-        }
+        ...config
     });
 
     await page.close();

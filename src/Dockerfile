@@ -1,18 +1,12 @@
-FROM microsoft/aspnetcore:2.0 AS base
-# Install Nodejs
-ENV NODE_VERSION 9.5.0
-ENV NODE_DOWNLOAD_URL https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.gz
-ENV NODE_DOWNLOAD_SHA 1002312e51cc8dcae788962d1971355f559bfbf7caef36cafda84339c0cd3dc6
+FROM mcr.microsoft.com/dotnet/core/aspnet:2.2 AS base
 
-RUN curl -SL "$NODE_DOWNLOAD_URL" --output nodejs.tar.gz \
-    && echo "$NODE_DOWNLOAD_SHA nodejs.tar.gz" | sha256sum -c - \
-    && tar -xzf "nodejs.tar.gz" -C /usr/local --strip-components=1 \
-    && rm nodejs.tar.gz \
-    && ln -s /usr/local/bin/node /usr/local/bin/nodejs
 
 # See https://crbug.com/795759
 RUN apt-get update && apt-get install -yq libgconf-2-4
 
+# Install Nodejs
+RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
+RUN apt-get install -y nodejs
 
 #pdf2png support
 #https://www.npmjs.com/package/pdf-image
@@ -40,13 +34,13 @@ RUN chmod +x /usr/local/bin/dumb-init
 WORKDIR /app
 EXPOSE 80
 
-FROM microsoft/aspnetcore-build:2.0 AS build
+FROM mcr.microsoft.com/dotnet/core/sdk:2.2 AS build
 
 WORKDIR /src
 COPY . .
 
 
-RUN dotnet restore
+RUN dotnet restore --configfile nuget.config
 
 RUN dotnet build -c Release -o /app
 
@@ -55,9 +49,9 @@ FROM build AS publish
 RUN dotnet publish -c Release -o /app
 WORKDIR /app
 
-RUN npm install
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
-ENTRYPOINT ["dotnet", "Puppeteer.dll"]
+RUN npm install
+ENTRYPOINT ["dotnet", "madpdf.dll"]
