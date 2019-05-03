@@ -15,13 +15,14 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "Puppeteer": {
+    "mad_api": {
       "commandName": "Project",
       "launchBrowser": true,
+      "launchUrl": "swagger/",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "dev"
       },
-      "applicationUrl": "http://localhost:5868/"
+      "applicationUrl": "http://localhost:5000/"
     }
   }
 }
