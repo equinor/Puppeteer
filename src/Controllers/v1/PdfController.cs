@@ -9,6 +9,7 @@ using madpdf.Models;
 using Microsoft.AspNetCore.Http;
 using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.ApplicationInsights;
 
 namespace madpdf.Controllers.v1
 {
@@ -20,11 +21,13 @@ namespace madpdf.Controllers.v1
     public class PdfController : ControllerBase
     {
         private readonly INodeServices _nodeServices;
+        private readonly TelemetryClient _telemetryClient;
 
-  
-        public PdfController(INodeServices nodeServices)
+
+        public PdfController(INodeServices nodeServices, TelemetryClient telemetryClient)
         {
             _nodeServices = nodeServices;
+            _telemetryClient = telemetryClient;
         }
 
         [HttpPost]
@@ -37,12 +40,13 @@ namespace madpdf.Controllers.v1
                 var bytes = System.IO.File.ReadAllBytes(pdfPath);
                 return File(bytes, "application/pdf");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _telemetryClient.TrackException(ex);
+
+                return BadRequest(ex.Message);
             }
 
-            return BadRequest();
-           
         }
 
 
