@@ -7,10 +7,12 @@ const path = require('path');
 
 module.exports = async function (result, html, config) {
 
+    const parsedConfig = JSON.parse(config);
+
     const htmlFileName = await writeFile(html);
 
     const browser = await createBrowser();
-    const pdfPath = await createPdf(browser, htmlFileName, config);
+    const pdfPath = await createPdf(browser, htmlFileName, parsedConfig);
 
 
     await browser.close();
