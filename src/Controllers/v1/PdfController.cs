@@ -9,6 +9,8 @@ using madpdf.Models;
 using Microsoft.AspNetCore.Http;
 using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.ApplicationInsights;
+using Newtonsoft.Json;
 
 namespace madpdf.Controllers.v1
 {
@@ -20,11 +22,13 @@ namespace madpdf.Controllers.v1
     public class PdfController : ControllerBase
     {
         private readonly INodeServices _nodeServices;
+        private readonly TelemetryClient _telemetryClient;
 
-  
-        public PdfController(INodeServices nodeServices)
+
+        public PdfController(INodeServices nodeServices, TelemetryClient telemetryClient)
         {
             _nodeServices = nodeServices;
+            _telemetryClient = telemetryClient;
         }
 
         [HttpPost]
@@ -33,16 +37,29 @@ namespace madpdf.Controllers.v1
         {
             try
             {
-                var pdfPath = await _nodeServices.InvokeAsync<string>("./Node/htmlToPdf.js", model.html, model.config);
+                if (model.config.scale == 0.0)
+                {
+                    model.config.scale = 1;
+                }
+
+                var payload = JsonConvert.SerializeObject(model.config,
+                            Newtonsoft.Json.Formatting.Indented,
+                            new JsonSerializerSettings
+                            {
+                                NullValueHandling = NullValueHandling.Ignore
+                            });
+
+                var pdfPath = await _nodeServices.InvokeAsync<string>("./Node/htmlToPdf.js", model.html, payload);
                 var bytes = System.IO.File.ReadAllBytes(pdfPath);
                 return File(bytes, "application/pdf");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _telemetryClient.TrackException(ex);
+
+                return BadRequest(ex.Message);
             }
 
-            return BadRequest();
-           
         }
 
 
