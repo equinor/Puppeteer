@@ -20,6 +20,11 @@ namespace madpdf.Models
         public bool printBackground { get; set; }
         public double scale { get; set; }
 
+        public bool displayHeaderFooter { get; set; }
+
+        public string headerTemplate { get; set; }
+
+        public string footerTemplate { get; set; }
 
     }
 }
