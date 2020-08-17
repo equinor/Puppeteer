@@ -1,11 +1,11 @@
-﻿const puppeteer = require('puppeteer');
+﻿const puppeteer = require("puppeteer");
 const tmp = require("tmp");
-const fs = require('fs');
-const fileUrl = require('file-url');
-const PDFMerge = require('pdf-merge');
-const path = require('path');
+const fs = require("fs");
+const fileUrl = require("file-url");
+const PDFMerge = require("pdf-merge");
+const path = require("path");
 
-module.exports = async function (result, html, config) {
+module.exports = async function(result, html, config) {
 
     const parsedConfig = JSON.parse(config);
 
@@ -24,17 +24,19 @@ async function writeFile(html) {
         postfix: ".html"
     });
     +
-    await fs.writeFile(tempHtmlFile.name, html, (err) => {
-        if (err) throw err;
-        console.log('The file has been saved!');
-    });
+        await fs.writeFile(tempHtmlFile.name,
+            html,
+            (err) => {
+                if (err) throw err;
+                console.log("The file has been saved!");
+            });
 
     return tempHtmlFile.name;
 }
 
 async function createBrowser() {
     return await puppeteer.launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: ["--no-sandbox", "--disable-setuid-sandbox"]
     });
 }
 
@@ -49,9 +51,10 @@ function createPdfs(browser, pages) {
 async function createPdf(browser, fileName, config) {
     const page = await browser.newPage();
 
-    await page.goto(fileUrl(fileName), {
-        waitUntil: 'networkidle2'
-    });
+    await page.goto(fileUrl(fileName),
+        {
+            waitUntil: "networkidle2"
+        });
 
     const tmpPdfFileName = tmp.tmpNameSync() + ".pdf";
     await page.pdf({

@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace madpdf.Models
+﻿namespace madpdf.Models
 {
     public class PdfMargin
     {
-
         public PdfMargin()
         {
-
         }
+
         public PdfMargin(string top, string right, string bottom, string left)
         {
             this.top = top;
@@ -24,6 +18,5 @@ namespace madpdf.Models
         public string right { get; set; }
         public string bottom { get; set; }
         public string left { get; set; }
-
     }
 }

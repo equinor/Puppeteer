@@ -1,15 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using madpdf.Models;
+using Microsoft.ApplicationInsights;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.NodeServices;
-using madpdf.Models;
-using Microsoft.AspNetCore.Http;
-using System.Reflection;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.ApplicationInsights;
 using Newtonsoft.Json;
 
 namespace madpdf.Controllers.v1
@@ -37,17 +36,14 @@ namespace madpdf.Controllers.v1
         {
             try
             {
-                if (model.config.scale == 0.0)
-                {
-                    model.config.scale = 1;
-                }
+                if (model.config.scale == 0.0) model.config.scale = 1;
 
                 var payload = JsonConvert.SerializeObject(model.config,
-                            Newtonsoft.Json.Formatting.Indented,
-                            new JsonSerializerSettings
-                            {
-                                NullValueHandling = NullValueHandling.Ignore
-                            });
+                    Formatting.Indented,
+                    new JsonSerializerSettings
+                    {
+                        NullValueHandling = NullValueHandling.Ignore
+                    });
 
                 var pdfPath = await _nodeServices.InvokeAsync<string>("./Node/htmlToPdf.js", model.html, payload);
                 var bytes = System.IO.File.ReadAllBytes(pdfPath);
@@ -59,7 +55,6 @@ namespace madpdf.Controllers.v1
 
                 return BadRequest(ex.Message);
             }
-
         }
 
 
@@ -67,18 +62,14 @@ namespace madpdf.Controllers.v1
         [Route("Pdf2Png")]
         public async Task<IActionResult> Pdf2Png([FromForm] IFormCollection form, int page = 0, int dpi = 180)
         {
-       
             var pdf = form.Files.FirstOrDefault();
 
             using (var ms = new MemoryStream())
             {
                 pdf.CopyTo(ms);
 
-                string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"tmp/");
-                if (!System.IO.Directory.Exists(path))
-                {
-                    System.IO.Directory.CreateDirectory(path);
-                }
+                var path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"tmp/");
+                if (!Directory.Exists(path)) Directory.CreateDirectory(path);
 
                 var file = path + Guid.NewGuid().ToString("N") + ".pdf";
 
@@ -89,11 +80,7 @@ namespace madpdf.Controllers.v1
                 var bytes = System.IO.File.ReadAllBytes(img);
                 System.IO.File.Delete(img);
                 return File(bytes, "image/png");
-
             }
-
-
-
         }
     }
 }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace madpdf.Models
+﻿namespace madpdf.Models
 {
     public class PdfConfig
     {
@@ -25,6 +20,5 @@ namespace madpdf.Models
         public string headerTemplate { get; set; }
 
         public string footerTemplate { get; set; }
-
     }
 }
