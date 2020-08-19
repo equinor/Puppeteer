@@ -6,7 +6,7 @@ namespace madpdf.Models
     
     public class PdfModel
     {
-        [JsonProperty("PdfModel")]
+        [JsonProperty("html")]
         [Required] 
         public string html { get; set; }
 
