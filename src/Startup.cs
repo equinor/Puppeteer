@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Statoil.MadCommon;
 using Statoil.MadCommon.Authentication;
 
@@ -38,7 +39,8 @@ namespace Puppeteer
             // Configure options
             services.AddOptions();
 
-
+            services.AddControllers();
+            services.AddApiVersioning();
             // Configure logging
             services.AddLogging(builder => builder
                 .AddConsole()
@@ -52,12 +54,12 @@ namespace Puppeteer
 
             services.AddResponseCompression();
             services.AddMemoryCache();
-
-            services.AddMvc(o => o.EnableEndpointRouting = false);
+            services.AddMvc(o => o.EnableEndpointRouting = false)
+                .AddNewtonsoftJson();
             services.AddApiVersioning(o => o.ReportApiVersions = true);
 
             services.AddVersionedApiExplorer(o => o.GroupNameFormat = "'v'VVV");
-
+            
             services.AddNodeServices(options =>
             {
                 options.InvocationTimeoutMilliseconds = 300000;
@@ -100,6 +102,13 @@ namespace Puppeteer
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory,
             TelemetryClient telemetryClient, IServiceProvider serviceProvider, IApiVersionDescriptionProvider provider)
         {
+            app.UseRouting();
+            app.UseApiVersioning();
+            app.UseStaticFiles();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
             app.UseResponseCompression();
             Bootstrap.AddDefaultExceptionHandling(app, telemetryClient);
 

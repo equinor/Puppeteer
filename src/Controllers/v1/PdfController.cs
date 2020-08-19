@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Threading.Tasks;
 using madpdf.Models;
 using Microsoft.ApplicationInsights;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.NodeServices;
+using Microsoft.CodeAnalysis;
 using Newtonsoft.Json;
 
 namespace madpdf.Controllers.v1
@@ -31,7 +33,7 @@ namespace madpdf.Controllers.v1
         }
 
         [HttpPost]
-        [Route("Html2Pdf")]
+        [Route("Html2Pdf", Name = "Html2Pdf")]
         public async Task<IActionResult> Html2Pdf([FromBody] PdfModel model)
         {
             try
@@ -59,10 +61,10 @@ namespace madpdf.Controllers.v1
 
 
         [HttpPost]
-        [Route("Pdf2Png")]
-        public async Task<IActionResult> Pdf2Png([FromForm] IFormCollection form, int page = 0, int dpi = 180)
+        [Route("Pdf2Png", Name = "Pdf2Png")]
+        public async Task<IActionResult> Pdf2Png([FromBody] IFormFileCollection form, int page = 0, int dpi = 180)
         {
-            var pdf = form.Files.FirstOrDefault();
+            var pdf = form.FirstOrDefault();
 
             using (var ms = new MemoryStream())
             {
