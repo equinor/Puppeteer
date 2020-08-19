@@ -39,8 +39,6 @@ namespace Puppeteer
             // Configure options
             services.AddOptions();
 
-            services.AddControllers();
-            services.AddApiVersioning();
             // Configure logging
             services.AddLogging(builder => builder
                 .AddConsole()
@@ -65,7 +63,6 @@ namespace Puppeteer
                 options.LaunchWithDebugging = true;
                 options.DebuggingPort = 9229;
             });
-
 
             // Configure authentication
             services.AddAuthentication(o =>
@@ -101,15 +98,7 @@ namespace Puppeteer
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory,
             TelemetryClient telemetryClient, IServiceProvider serviceProvider, IApiVersionDescriptionProvider provider)
         {
-            app.UseRouting();
-            app.UseApiVersioning();
-            app.UseStaticFiles();
             app.UseAuthentication();
-            app.UseAuthorization();
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
             app.UseResponseCompression();
             Bootstrap.AddDefaultExceptionHandling(app, telemetryClient);
 
