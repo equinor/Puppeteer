@@ -51,7 +51,6 @@ namespace Puppeteer
 #endif
             // Needs ApplicationInsights__InstrumentationKey in appsettings to work
             services.AddApplicationInsightsTelemetry(Configuration);
-
             services.AddResponseCompression();
             services.AddMemoryCache();
             services.AddMvc(o => o.EnableEndpointRouting = false)
@@ -105,6 +104,8 @@ namespace Puppeteer
             app.UseRouting();
             app.UseApiVersioning();
             app.UseStaticFiles();
+            app.UseAuthentication();
+            app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
