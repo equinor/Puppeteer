@@ -2,15 +2,13 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Metadata;
 using System.Threading.Tasks;
+using Jering.Javascript.NodeJS;
 using madpdf.Models;
 using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.NodeServices;
-using Microsoft.CodeAnalysis;
 using Newtonsoft.Json;
 
 namespace madpdf.Controllers.v1
@@ -22,11 +20,11 @@ namespace madpdf.Controllers.v1
     [ApiController]
     public class PdfController : ControllerBase
     {
-        private readonly INodeServices _nodeServices;
+        private readonly INodeJSService _nodeServices;
         private readonly TelemetryClient _telemetryClient;
 
 
-        public PdfController(INodeServices nodeServices, TelemetryClient telemetryClient)
+        public PdfController(INodeJSService nodeServices, TelemetryClient telemetryClient)
         {
             _nodeServices = nodeServices;
             _telemetryClient = telemetryClient;
@@ -47,7 +45,7 @@ namespace madpdf.Controllers.v1
                         NullValueHandling = NullValueHandling.Ignore
                     });
 
-                var pdfPath = await _nodeServices.InvokeAsync<string>("./Node/htmlToPdf.js", model.html, payload);
+                var pdfPath = await _nodeServices.InvokeFromStringAsync<string>("./Node/htmlToPdf.js", model.html, payload);
                 var bytes = System.IO.File.ReadAllBytes(pdfPath);
                 return File(bytes, "application/pdf");
             }
@@ -77,7 +75,7 @@ namespace madpdf.Controllers.v1
 
                 System.IO.File.WriteAllBytes(file, ms.ToArray());
 
-                var img = await _nodeServices.InvokeAsync<string>("./Node/pdfToImage.js", file, page, dpi);
+                var img = await _nodeServices.InvokeFromFileAsync<string>("./Node/pdfToImage.js", file, args: new object[]{page, dpi});
 
                 var bytes = System.IO.File.ReadAllBytes(img);
                 System.IO.File.Delete(img);

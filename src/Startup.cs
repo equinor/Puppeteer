@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using Jering.Javascript.NodeJS;
 using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -57,12 +58,7 @@ namespace Puppeteer
 
             services.AddVersionedApiExplorer(o => o.GroupNameFormat = "'v'VVV");
             
-            services.AddNodeServices(options =>
-            {
-                options.InvocationTimeoutMilliseconds = 300000;
-                options.LaunchWithDebugging = true;
-                options.DebuggingPort = 9229;
-            });
+            services.AddNodeJS().AddOptions();
 
             // Configure authentication
             services.AddAuthentication(o =>

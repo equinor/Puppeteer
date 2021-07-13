@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.NodeServices;
+using Jering.Javascript.NodeJS;
 using Statoil.MadCommon.Model.HealthCheck;
 
 namespace madpdf.Controllers.v1
@@ -11,10 +11,10 @@ namespace madpdf.Controllers.v1
     [ApiController]
     public class HealthController : ControllerBase
     {
-        private readonly INodeServices _nodeServices;
+        private readonly INodeJSService _nodeServices;
 
 
-        public HealthController(INodeServices nodeServices)
+        public HealthController(INodeJSService nodeServices)
         {
             _nodeServices = nodeServices;
         }
@@ -52,7 +52,7 @@ namespace madpdf.Controllers.v1
             try
             {
                 var html = "<p>test/<p>";
-                var response = await _nodeServices.InvokeAsync<string>("./Node/htmlToPdf.js", html);
+                var response = await _nodeServices.InvokeFromStringAsync<string>("./Node/htmlToPdf.js", html);
 
                 if (response == null)
                     depencency.SetError("No response from Node");
