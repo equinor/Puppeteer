@@ -1,5 +1,3 @@
-const path = require("path");
-const PDFImage = require("pdf-image").PDFImage;
 import puppeteer from "puppeteer";
 import tmp from "tmp";
 import fs from "fs";

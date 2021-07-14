@@ -45,7 +45,7 @@ namespace madpdf.Controllers.v1
                         NullValueHandling = NullValueHandling.Ignore
                     });
 
-                var pdfPath = await _nodeServices.InvokeFromFileAsync<string>("./Node/htmlToPdf.js", model.html, args:new object[]{payload});
+                var pdfPath = await _nodeServices.InvokeFromFileAsync<string>("./Node/htmlToPdf.mjs", model.html, args:new object[]{payload});
                 var bytes = System.IO.File.ReadAllBytes(pdfPath);
                 return File(bytes, "application/pdf");
             }
@@ -75,7 +75,7 @@ namespace madpdf.Controllers.v1
 
                 System.IO.File.WriteAllBytes(file, ms.ToArray());
 
-                var img = await _nodeServices.InvokeFromFileAsync<string>("./Node/pdfToImage.js", file, args: new object[]{page, dpi});
+                var img = await _nodeServices.InvokeFromFileAsync<string>("./Node/pdfToImage.mjs", file, args: new object[]{page, dpi});
 
                 var bytes = System.IO.File.ReadAllBytes(img);
                 System.IO.File.Delete(img);
