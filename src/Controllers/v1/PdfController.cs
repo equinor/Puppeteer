@@ -45,7 +45,7 @@ namespace madpdf.Controllers.v1
                         NullValueHandling = NullValueHandling.Ignore
                     });
 
-                var pdfPath = await _nodeServices.InvokeFromStringAsync<string>("./Node/htmlToPdf.js", model.html, payload);
+                var pdfPath = await _nodeServices.InvokeFromFileAsync<string>("./Node/htmlToPdf.js", model.html, args:new object[]{payload});
                 var bytes = System.IO.File.ReadAllBytes(pdfPath);
                 return File(bytes, "application/pdf");
             }
