@@ -1,10 +1,13 @@
-const puppeteer = require("puppeteer");
-const tmp = require("tmp");
-const fs = require("fs");
-const fileUrl = require("file-url");
-const PDFMerge = require("pdf-merge");
 const path = require("path");
 const PDFImage = require("pdf-image").PDFImage;
+import puppeteer from "puppeteer";
+import tmp from "tmp";
+import fs from "fs";
+import fileUrl from "file-url";
+import PDFMerge from "pdf-merge";
+import path from "path";
+import path from  "path";
+import PDFImage from "pdf-image".PDFImage;
 
 module.exports = function(result, file, page, dpi) {
     //todo
