@@ -1,3 +1,5 @@
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
 const puppeteer = require("puppeteer");
 const tmp = require("tmp");
 const fs = require("fs");
