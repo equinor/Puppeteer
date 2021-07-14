@@ -5,7 +5,6 @@ module.exports = function(result, file, page, dpi) {
     import fileUrl from "file-url";
     import PDFMerge from "pdf-merge";
     import path from "path";
-    import path from  "path";
     import PDFImage from "pdf-image".PDFImage;
     //todo
     console.log(file);
