@@ -52,7 +52,7 @@ namespace madpdf.Controllers.v1
             try
             {
                 var html = "<p>test/<p>";
-                var response = await _nodeServices.InvokeFromFileAsync<string>("./Node/htmlToPdf.mjs", html);
+                var response = await _nodeServices.InvokeFromFileAsync<string>("./Node/htmlToPdf.cjs", html);
 
                 if (response == null)
                     depencency.SetError("No response from Node");
