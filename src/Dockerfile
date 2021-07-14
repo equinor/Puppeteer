@@ -3,9 +3,9 @@ FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS base
 
 # See https://crbug.com/795759
 RUN apt-get update && apt-get install -yq libgconf-2-4
-
+RUN apt-get update && apt-get install -y curl
 # Install Nodejs
-RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
 RUN apt-get install -y nodejs
 
 #pdf2png support
