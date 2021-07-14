@@ -3,6 +3,7 @@
   "name": "asp.net",
   "private": true,
   "devDependencies": {},
+  "type": "module",
   "dependencies": {
     "file-url": "^4.0.0",
     "pdf-image": "2.0.0",
