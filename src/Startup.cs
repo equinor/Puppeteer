@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
-using Jering.Javascript.NodeJS;
+using madpdf.Models;
 using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -12,10 +12,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using PuppeteerSharp;
 using Statoil.MadCommon;
 using Statoil.MadCommon.Authentication;
 
-namespace Puppeteer
+namespace madpdf
 {
     public class Startup
     {
@@ -57,8 +58,6 @@ namespace Puppeteer
             services.AddApiVersioning(o => o.ReportApiVersions = true);
 
             services.AddVersionedApiExplorer(o => o.GroupNameFormat = "'v'VVV");
-            
-            services.AddNodeJS().AddOptions();
 
             // Configure authentication
             services.AddAuthentication(o =>
@@ -96,6 +95,7 @@ namespace Puppeteer
         {
             app.UseAuthentication();
             app.UseResponseCompression();
+            MapsterConfiguration.Configure();
             Bootstrap.AddDefaultExceptionHandling(app, telemetryClient);
 
             app.UseAuthentication();

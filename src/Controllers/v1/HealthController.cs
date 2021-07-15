@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Jering.Javascript.NodeJS;
+using PuppeteerSharp;
 using Statoil.MadCommon.Model.HealthCheck;
 
 namespace madpdf.Controllers.v1
@@ -11,12 +11,11 @@ namespace madpdf.Controllers.v1
     [ApiController]
     public class HealthController : ControllerBase
     {
-        private readonly INodeJSService _nodeServices;
 
 
-        public HealthController(INodeJSService nodeServices)
+
+        public HealthController()
         {
-            _nodeServices = nodeServices;
         }
 
         /// <summary>
@@ -51,15 +50,21 @@ namespace madpdf.Controllers.v1
 
             try
             {
+                await new BrowserFetcher().DownloadAsync(BrowserFetcher.DefaultChromiumRevision);
+                var browser = await Puppeteer.LaunchAsync(new LaunchOptions
+                {
+                    Headless = true
+                });
                 var html = "<p>test/<p>";
-                var response = await _nodeServices.InvokeFromFileAsync<string>("./Node/htmlToPdf.cjs", html);
+                var page = await browser.NewPageAsync();
+                await page.SetContentAsync(html);
+                var response = await page.PdfStreamAsync();
+                //var response = await _nodeServices.InvokeFromFileAsync<string>("./Node/htmlToPdf.cjs", html);
 
                 if (response == null)
                     depencency.SetError("No response from Node");
                 else if (response.Length == 0)
                     depencency.SetError("PDF stream is zero length");
-                else
-                    System.IO.File.Delete(response);
             }
             catch (Exception e)
             {

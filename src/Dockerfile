@@ -1,58 +1,14 @@
-FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS base
-
-
-# See https://crbug.com/795759
-RUN apt-get update && apt-get install -yq libgconf-2-4
-RUN apt-get update && apt-get install -y curl
-# Install Nodejs
-RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
-RUN apt-get install -y nodejs
-
-#pdf2png support
-#https://www.npmjs.com/package/pdf-image
-RUN apt-get install -y imagemagick ghostscript poppler-utils
-
-RUN mkdir -p /usr/share/man/man1mkdir -p /usr/share/man/man1
-# Install latest chrome dev package and fonts to support major charsets (Chinese, Japanese, Arabic, Hebrew, Thai and a few others)
-# Note: this installs the necessary libs to make the bundled version of Chromium that Puppeteer
-# installs, work.
-RUN apt-get update && apt-get install -y wget gnupg2 pdftk --no-install-recommends \
-    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf libxss1 \
-      --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get purge --auto-remove -y curl \
-    && rm -rf /src/*.deb
-
-
-
-
-# It's a good idea to use dumb-init to help prevent zombie chrome processes.
-ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 /usr/local/bin/dumb-init
-RUN chmod +x /usr/local/bin/dumb-init
-WORKDIR /app
-EXPOSE 80
-
-FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
-
-WORKDIR /src
-COPY . .
-
-
+FROM mcr.microsoft.com/dotnet/sdk:5.0-focal AS build-env
+WORKDIR /publish
+COPY *.csproj nuget.config ./
 RUN dotnet restore --configfile nuget.config
+COPY . .
+RUN dotnet publish -c Release --output ./out
 
-RUN dotnet build -c Release -o /app
-
-
-FROM build AS publish
-RUN dotnet publish -c Release -o /app
+FROM mcr.microsoft.com/dotnet/aspnet:5.0-focal
 WORKDIR /app
-
-
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app .
-RUN npm install
+COPY --from=build-env /publish/out .
+ENV ASPNETCORE_ENVIRONMENT prod
+ENV ASPNETCORE_URLS "http://0.0.0.0:5000"
+EXPOSE 5000
 ENTRYPOINT ["dotnet", "madpdf.dll"]

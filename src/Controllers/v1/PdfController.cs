@@ -3,13 +3,15 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Jering.Javascript.NodeJS;
 using madpdf.Models;
+using Mapster;
 using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using PuppeteerSharp;
+using PuppeteerSharp.Media;
 
 namespace madpdf.Controllers.v1
 {
@@ -20,13 +22,11 @@ namespace madpdf.Controllers.v1
     [ApiController]
     public class PdfController : ControllerBase
     {
-        private readonly INodeJSService _nodeServices;
         private readonly TelemetryClient _telemetryClient;
 
 
-        public PdfController(INodeJSService nodeServices, TelemetryClient telemetryClient)
+        public PdfController(TelemetryClient telemetryClient)
         {
-            _nodeServices = nodeServices;
             _telemetryClient = telemetryClient;
         }
 
@@ -36,18 +36,60 @@ namespace madpdf.Controllers.v1
         {
             try
             {
-                if (model.config.scale == 0.0) model.config.scale = 1;
+                await new BrowserFetcher().DownloadAsync(BrowserFetcher.DefaultChromiumRevision);
+                var options = new LaunchOptions { Headless = true };
+                using (var browser = await Puppeteer.LaunchAsync(options))
+                {
 
-                var payload = JsonConvert.SerializeObject(model.config,
-                    Formatting.Indented,
-                    new JsonSerializerSettings
+                    if (model.config.scale == 0.0) model.config.scale = 1;
+
+                    var payload = JsonConvert.SerializeObject(model.config,
+                        Formatting.Indented,
+                        new JsonSerializerSettings
+                        {
+                            NullValueHandling = NullValueHandling.Ignore
+                        });
+                    var page = await browser.NewPageAsync();
+                    //await page.GoToAsync("http://www.vg.no");
+                    await page.SetContentAsync(model.html);
+                    PdfOptions pdfOptions = new PdfOptions();
+                    if (model.config != null)
                     {
-                        NullValueHandling = NullValueHandling.Ignore
-                    });
+                         pdfOptions = model.config.Adapt<PdfOptions>();
+                        if (!string.IsNullOrEmpty(model.config.format))
+                        {
+                            switch (model.config.format.ToLower())
+                            {
+                                case "a0":
+                                    pdfOptions.Format = PaperFormat.A0;
+                                    break;
+                                case "a1":
+                                    pdfOptions.Format = PaperFormat.A1;
+                                    break;
+                                case "a2":
+                                    pdfOptions.Format = PaperFormat.A2;
+                                    break;
+                                case "a3":
+                                    pdfOptions.Format = PaperFormat.A3;
+                                    break;
+                                case "a5":
+                                    pdfOptions.Format = PaperFormat.A5;
+                                    break;
+                                case "a6":
+                                    pdfOptions.Format = PaperFormat.A6;
+                                    break;
+                                default:
+                                    pdfOptions.Format = PaperFormat.A4;
+                                    break;
 
-                var pdfPath = await _nodeServices.InvokeFromFileAsync<string>("./Node/htmlToPdf.cjs", model.html, args:new object[]{payload});
-                var bytes = System.IO.File.ReadAllBytes(pdfPath);
-                return File(bytes, "application/pdf");
+                            }
+                        }
+                    }
+
+                    //var pdfPath = await _nodeServices.InvokeFromFileAsync<string>("./Node/htmlToPdf.cjs", model.html, args:new object[]{payload});
+                    var bytes = await page.PdfDataAsync(pdfOptions);
+                    return File(bytes, "application/pdf");
+                }
             }
             catch (Exception ex)
             {
@@ -60,26 +102,33 @@ namespace madpdf.Controllers.v1
 
         [HttpPost]
         [Route("Pdf2Png", Name = "Pdf2Png")]
-        public async Task<IActionResult> Pdf2Png([FromBody] IFormFileCollection form, int page = 0, int dpi = 180)
+        public async Task<IActionResult> Pdf2Png([FromForm] IFormFileCollection form, int page = 0, int dpi = 180)
         {
-            var pdf = form.FirstOrDefault();
+            var pdf = Request.Form.Files.FirstOrDefault();
 
             using (var ms = new MemoryStream())
             {
-                pdf.CopyTo(ms);
+                await new BrowserFetcher().DownloadAsync(BrowserFetcher.DefaultChromiumRevision);
+                var browser = await Puppeteer.LaunchAsync(new LaunchOptions
+                {
+                    Headless = true
 
+                });
+                pdf.CopyTo(ms);
+                var pdfpage = await browser.NewPageAsync();
                 var path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"tmp/");
                 if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-
                 var file = path + Guid.NewGuid().ToString("N") + ".pdf";
-
                 System.IO.File.WriteAllBytes(file, ms.ToArray());
+                file = file.Replace("\\", "/");
+                await pdfpage.GoToAsync($"file:///{file}");
+                return File(await pdfpage.ScreenshotStreamAsync(),"image/png");
+                //var img = await _nodeServices.InvokeFromFileAsync<string>("./Node/pdfToImage.cjs", file, args: new object[]{page, dpi});
 
-                var img = await _nodeServices.InvokeFromFileAsync<string>("./Node/pdfToImage.cjs", file, args: new object[]{page, dpi});
-
-                var bytes = System.IO.File.ReadAllBytes(img);
-                System.IO.File.Delete(img);
-                return File(bytes, "image/png");
+                // var bytes = System.IO.File.ReadAllBytes(img);
+                //System.IO.File.Delete(img);
+                return Ok();
+                // return File(bytes, "image/png");
             }
         }
     }
