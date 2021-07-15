@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using PuppeteerSharp;
 using Statoil.MadCommon.Model.HealthCheck;
-using EdgeJs;
 namespace madpdf.Controllers.v1
 {
     [ApiVersion("1.0")]
