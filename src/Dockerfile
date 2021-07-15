@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -yq libgconf-2-4
 RUN apt-get update && apt-get install -y curl
 # Install Nodejs
 RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
-RUN apt-get install -y nodejss
+RUN apt-get install -y nodejs
 
 
 RUN mkdir -p /usr/share/man/man1mkdir -p /usr/share/man/man1
