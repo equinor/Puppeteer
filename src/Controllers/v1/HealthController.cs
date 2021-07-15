@@ -59,7 +59,7 @@ namespace madpdf.Controllers.v1
                 }
 
                 var bf = await new BrowserFetcher(bfOptions).DownloadAsync(BrowserFetcher.DefaultChromiumRevision);
-                var options = new LaunchOptions {Headless = true, ExecutablePath = bf.ExecutablePath};
+                var options = new LaunchOptions {Headless = true, ExecutablePath = bf.ExecutablePath, Args = new[] { "--no-sandbox" } };
                 using (var browser = await Puppeteer.LaunchAsync(options))
                 {
                     var html = "<p>test/<p>";
