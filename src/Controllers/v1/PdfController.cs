@@ -37,7 +37,7 @@ namespace madpdf.Controllers.v1
         {
             try
             {
-                var options = new LaunchOptions { Headless = true,ExecutablePath = "/usr/bin/google-chrome-stable", Args = new []{"--no-sandbox"} };
+                var options = new LaunchOptions { Headless = true, Args = new []{"--no-sandbox"} };
                 using (var browser = await Puppeteer.LaunchAsync(options))
                 {
 
