@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using madpdf.Models;
 using Mapster;
@@ -36,8 +37,13 @@ namespace madpdf.Controllers.v1
         {
             try
             {
-                await new BrowserFetcher().DownloadAsync(BrowserFetcher.DefaultChromiumRevision);
-                var options = new LaunchOptions { Headless = true };
+                var bfOptions = new BrowserFetcherOptions();
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    bfOptions.Path = Path.GetTempPath();
+                }
+                var bf = await new BrowserFetcher(bfOptions).DownloadAsync(BrowserFetcher.DefaultChromiumRevision);
+                var options = new LaunchOptions { Headless = true,ExecutablePath = bf.ExecutablePath};
                 using (var browser = await Puppeteer.LaunchAsync(options))
                 {
 

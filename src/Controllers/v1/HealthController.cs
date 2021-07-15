@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using PuppeteerSharp;
@@ -50,21 +52,27 @@ namespace madpdf.Controllers.v1
 
             try
             {
-                await new BrowserFetcher().DownloadAsync(BrowserFetcher.DefaultChromiumRevision);
-                var browser = await Puppeteer.LaunchAsync(new LaunchOptions
+                var bfOptions = new BrowserFetcherOptions();
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    Headless = true
-                });
-                var html = "<p>test/<p>";
-                var page = await browser.NewPageAsync();
-                await page.SetContentAsync(html);
-                var response = await page.PdfStreamAsync();
-                //var response = await _nodeServices.InvokeFromFileAsync<string>("./Node/htmlToPdf.cjs", html);
+                    bfOptions.Path = Path.GetTempPath();
+                }
 
-                if (response == null)
-                    depencency.SetError("No response from Node");
-                else if (response.Length == 0)
-                    depencency.SetError("PDF stream is zero length");
+                var bf = await new BrowserFetcher(bfOptions).DownloadAsync(BrowserFetcher.DefaultChromiumRevision);
+                var options = new LaunchOptions {Headless = true, ExecutablePath = bf.ExecutablePath};
+                using (var browser = await Puppeteer.LaunchAsync(options))
+                {
+                    var html = "<p>test/<p>";
+                    var page = await browser.NewPageAsync();
+                    await page.SetContentAsync(html);
+                    var response = await page.PdfStreamAsync();
+                    //var response = await _nodeServices.InvokeFromFileAsync<string>("./Node/htmlToPdf.cjs", html);
+
+                    if (response == null)
+                        depencency.SetError("No response from Node");
+                    else if (response.Length == 0)
+                        depencency.SetError("PDF stream is zero length");
+                }
             }
             catch (Exception e)
             {
