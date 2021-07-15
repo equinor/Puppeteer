@@ -99,37 +99,5 @@ namespace madpdf.Controllers.v1
             }
         }
 
-
-        [HttpPost]
-        [Route("Pdf2Png", Name = "Pdf2Png")]
-        public async Task<IActionResult> Pdf2Png([FromForm] IFormFileCollection form, int page = 0, int dpi = 180)
-        {
-            var pdf = Request.Form.Files.FirstOrDefault();
-
-            using (var ms = new MemoryStream())
-            {
-                await new BrowserFetcher().DownloadAsync(BrowserFetcher.DefaultChromiumRevision);
-                var browser = await Puppeteer.LaunchAsync(new LaunchOptions
-                {
-                    Headless = true
-
-                });
-                pdf.CopyTo(ms);
-                var pdfpage = await browser.NewPageAsync();
-                var path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"tmp/");
-                if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-                var file = path + Guid.NewGuid().ToString("N") + ".pdf";
-                System.IO.File.WriteAllBytes(file, ms.ToArray());
-                file = file.Replace("\\", "/");
-                await pdfpage.GoToAsync($"file:///{file}");
-                return File(await pdfpage.ScreenshotStreamAsync(),"image/png");
-                //var img = await _nodeServices.InvokeFromFileAsync<string>("./Node/pdfToImage.cjs", file, args: new object[]{page, dpi});
-
-                // var bytes = System.IO.File.ReadAllBytes(img);
-                //System.IO.File.Delete(img);
-                return Ok();
-                // return File(bytes, "image/png");
-            }
-        }
     }
 }
