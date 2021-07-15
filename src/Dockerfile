@@ -50,6 +50,7 @@ WORKDIR /app
 
 FROM base AS final
 WORKDIR /app
+ENV PUPPETEER_EXECUTABLE_PATH "/usr/bin/google-chrome-unstable"
 COPY --from=publish /app .
 RUN npm install
 ENTRYPOINT ["dotnet", "madpdf.dll"]
