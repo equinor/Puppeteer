@@ -19,9 +19,7 @@ RUN wget --no-verbose -O /tmp/chrome.deb http://dl.google.com/linux/chrome/deb/p
     && apt-get update \
     && apt-get install -y /tmp/chrome.deb --no-install-recommends --allow-downgrades fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf \
     && rm /tmp/chrome.deb
-    && rm -rf /var/lib/apt/lists/* \
     && apt-get purge --auto-remove -y curl \
-    && rm -rf /src/*.deb
 
 
 
