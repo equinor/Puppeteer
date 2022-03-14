@@ -1,16 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.NodeServices;
-using madpdf.Models;
-using Microsoft.AspNetCore.Http;
 using System.Reflection;
-using Microsoft.AspNetCore.Authorization;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using madpdf.Models;
+using Mapster;
 using Microsoft.ApplicationInsights;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using PuppeteerSharp;
+using PuppeteerSharp.Media;
 
 namespace madpdf.Controllers.v1
 {
@@ -21,37 +23,73 @@ namespace madpdf.Controllers.v1
     [ApiController]
     public class PdfController : ControllerBase
     {
-        private readonly INodeServices _nodeServices;
         private readonly TelemetryClient _telemetryClient;
 
 
-        public PdfController(INodeServices nodeServices, TelemetryClient telemetryClient)
+        public PdfController(TelemetryClient telemetryClient)
         {
-            _nodeServices = nodeServices;
             _telemetryClient = telemetryClient;
         }
 
         [HttpPost]
-        [Route("Html2Pdf")]
+        [Route("Html2Pdf", Name = "Html2Pdf")]
         public async Task<IActionResult> Html2Pdf([FromBody] PdfModel model)
         {
             try
             {
-                if (model.config.scale == 0.0)
+                var options = new LaunchOptions { Headless = true, Args = new []{"--no-sandbox"} };
+                using (var browser = await Puppeteer.LaunchAsync(options))
                 {
-                    model.config.scale = 1;
-                }
+                    if (model.config.scale == 0.0) model.config.scale = 1;
 
-                var payload = JsonConvert.SerializeObject(model.config,
-                            Newtonsoft.Json.Formatting.Indented,
-                            new JsonSerializerSettings
+                    var payload = JsonConvert.SerializeObject(model.config,
+                        Formatting.Indented,
+                        new JsonSerializerSettings
+                        {
+                            NullValueHandling = NullValueHandling.Ignore
+                        });
+                    var page = await browser.NewPageAsync();
+
+                    //await page.GoToAsync("http://www.vg.no");
+                    await page.SetContentAsync(model.html);
+                    PdfOptions pdfOptions = new PdfOptions();
+                    if (model.config != null)
+                    {
+                         pdfOptions = model.config.Adapt<PdfOptions>();
+                        if (!string.IsNullOrEmpty(model.config.format))
+                        {
+                            switch (model.config.format.ToLower())
                             {
-                                NullValueHandling = NullValueHandling.Ignore
-                            });
+                                case "a0":
+                                    pdfOptions.Format = PaperFormat.A0;
+                                    break;
+                                case "a1":
+                                    pdfOptions.Format = PaperFormat.A1;
+                                    break;
+                                case "a2":
+                                    pdfOptions.Format = PaperFormat.A2;
+                                    break;
+                                case "a3":
+                                    pdfOptions.Format = PaperFormat.A3;
+                                    break;
+                                case "a5":
+                                    pdfOptions.Format = PaperFormat.A5;
+                                    break;
+                                case "a6":
+                                    pdfOptions.Format = PaperFormat.A6;
+                                    break;
+                                default:
+                                    pdfOptions.Format = PaperFormat.A4;
+                                    break;
 
-                var pdfPath = await _nodeServices.InvokeAsync<string>("./Node/htmlToPdf.js", model.html, payload);
-                var bytes = System.IO.File.ReadAllBytes(pdfPath);
-                return File(bytes, "application/pdf");
+                            }
+                        }
+                    }
+
+                    //var pdfPath = await _nodeServices.InvokeFromFileAsync<string>("./Node/htmlToPdf.cjs", model.html, args:new object[]{payload});
+                    var bytes = await page.PdfDataAsync(pdfOptions);
+                    return File(bytes, "application/pdf");
+                }
             }
             catch (Exception ex)
             {
@@ -59,41 +97,7 @@ namespace madpdf.Controllers.v1
 
                 return BadRequest(ex.Message);
             }
-
         }
 
-
-        [HttpPost]
-        [Route("Pdf2Png")]
-        public async Task<IActionResult> Pdf2Png([FromForm] IFormCollection form, int page = 0, int dpi = 180)
-        {
-       
-            var pdf = form.Files.FirstOrDefault();
-
-            using (var ms = new MemoryStream())
-            {
-                pdf.CopyTo(ms);
-
-                string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"tmp/");
-                if (!System.IO.Directory.Exists(path))
-                {
-                    System.IO.Directory.CreateDirectory(path);
-                }
-
-                var file = path + Guid.NewGuid().ToString("N") + ".pdf";
-
-                System.IO.File.WriteAllBytes(file, ms.ToArray());
-
-                var img = await _nodeServices.InvokeAsync<string>("./Node/pdfToImage.js", file, page, dpi);
-
-                var bytes = System.IO.File.ReadAllBytes(img);
-                System.IO.File.Delete(img);
-                return File(bytes, "image/png");
-
-            }
-
-
-
-        }
     }
 }

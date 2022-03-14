@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Newtonsoft.Json;
 
 namespace madpdf.Models
 {
+    [JsonObject(MemberSerialization.OptIn)]
     public class PdfMargin
     {
-
         public PdfMargin()
         {
-
         }
         public PdfMargin(string top, string right, string bottom, string left)
         {
@@ -19,11 +15,13 @@ namespace madpdf.Models
             this.bottom = bottom;
             this.left = left;
         }
-
+        [JsonProperty("top")]
         public string top { get; set; }
+        [JsonProperty("right")]
         public string right { get; set; }
+        [JsonProperty("bottom")]
         public string bottom { get; set; }
+        [JsonProperty("left")]
         public string left { get; set; }
-
     }
 }
