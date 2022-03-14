@@ -40,7 +40,6 @@ namespace madpdf.Controllers.v1
                 var options = new LaunchOptions { Headless = true, Args = new []{"--no-sandbox"} };
                 using (var browser = await Puppeteer.LaunchAsync(options))
                 {
-
                     if (model.config.scale == 0.0) model.config.scale = 1;
 
                     var payload = JsonConvert.SerializeObject(model.config,
@@ -50,6 +49,7 @@ namespace madpdf.Controllers.v1
                             NullValueHandling = NullValueHandling.Ignore
                         });
                     var page = await browser.NewPageAsync();
+
                     //await page.GoToAsync("http://www.vg.no");
                     await page.SetContentAsync(model.html);
                     PdfOptions pdfOptions = new PdfOptions();
