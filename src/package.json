@@ -7,7 +7,7 @@
     "file-url": "^4.0.0",
     "pdf-image": "2.0.0",
     "pdf-merge": "^1.2.0",
-    "puppeteer": "10.1.0",
-    "tmp": "0.0.33"
+    "puppeteer": "13.5.1",
+    "tmp": "0.2.1"
   }
 }
