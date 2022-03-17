@@ -5,7 +5,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
 RUN apt-get update && apt-get install -yq libgconf-2-4
 RUN apt-get update && apt-get install -y curl
 # Install Nodejs
-RUN curl -sL https://deb.nodesource.com/setup_17.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup | bash -
 RUN apt-get install -y nodejs
 
 
@@ -26,7 +26,6 @@ RUN chmod +x /usr/local/bin/dumb-init
 WORKDIR /app
 EXPOSE 80
 
-RUN npm audit fix --force
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 
