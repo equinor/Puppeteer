@@ -5,7 +5,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
 RUN apt-get update && apt-get install -yq libgconf-2-4
 RUN apt-get update && apt-get install -y curl
 # Install Nodejs
-RUN curl -sL https://deb.nodesource.com/setup | bash -
+RUN curl -sL https://deb.nodesource.com/setup_current.x | bash -
 RUN apt-get install -y nodejs
 
 
