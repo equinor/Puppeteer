@@ -26,6 +26,8 @@ RUN chmod +x /usr/local/bin/dumb-init
 WORKDIR /app
 EXPOSE 80
 
+RUN npm audit fix --force
+
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 
 WORKDIR /src
