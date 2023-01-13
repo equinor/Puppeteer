@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Identity.Web;
 using Newtonsoft.Json;
 using PuppeteerSharp;
 using Statoil.MadCommon;
@@ -38,6 +39,8 @@ namespace madpdf
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddMicrosoftIdentityWebApiAuthentication(this.Configuration, "AzureAd", "Bearer", false);
+                
             // Configure options
             services.AddOptions();
 
@@ -60,21 +63,7 @@ namespace madpdf
             services.AddVersionedApiExplorer(o => o.GroupNameFormat = "'v'VVV");
 
             // Configure authentication
-            services.AddAuthentication(o =>
-                {
-                    o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                    o.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                })
-                .AddCookie()
-                .AddJwtBearer(o =>
-                {
-                    o.Authority = Configuration["AzureAd:Authority"];
-                    o.Audience = Configuration["AzureAd:ClientId"];
-#if DEBUG
-                    o.RequireHttpsMetadata = false;
-#endif
-                });
+            
 
             // Add Swagger
             Bootstrap.AddSwagger(services, "Equinor PDF API", GetSwaggerDocPath());
