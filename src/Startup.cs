@@ -14,8 +14,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
 using Newtonsoft.Json;
 using PuppeteerSharp;
-using Statoil.MadCommon;
-using Statoil.MadCommon.Authentication;
 
 namespace madpdf
 {
@@ -66,7 +64,7 @@ namespace madpdf
             
 
             // Add Swagger
-            Bootstrap.AddSwagger(services, "Equinor PDF API", GetSwaggerDocPath());
+            services.AddSwaggerGen();
         }
 
         private string GetSwaggerDocPath()
@@ -85,21 +83,20 @@ namespace madpdf
             app.UseAuthentication();
             app.UseResponseCompression();
             MapsterConfiguration.Configure();
-            Bootstrap.AddDefaultExceptionHandling(app, telemetryClient);
 
-            app.UseAuthentication();
+            app.UseRouting();
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
             if (env.EnvironmentName == "dev")
                 app.UseCors(builder =>
                     builder
-                        .WithOrigins("http://localhost:5001")
+                        .WithOrigins("http://localhost:5000", "http://localhost:5001")
                         .AllowAnyHeader()
                         .AllowAnyMethod());
             if (Convert.ToBoolean(Configuration["CertificateValidation:Enabled"]))
-                app.UseClientCertificateAuthentication();
 
             app.UseMvc();
-            Bootstrap.UseSwagger(app, provider, env);
         }
     }
 }

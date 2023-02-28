@@ -19,6 +19,7 @@ namespace madpdf.Controllers.v1
     [Authorize]
     [ApiVersion("1.0")]
     [Route("api/v{api-version:apiVersion}/[controller]")]
+    //[Route("api")]
     [Produces("application/json")]
     [ApiController]
     public class PdfController : ControllerBase
@@ -31,8 +32,8 @@ namespace madpdf.Controllers.v1
             _telemetryClient = telemetryClient;
         }
 
-        [HttpPost]
-        [Route("Html2Pdf", Name = "Html2Pdf")]
+        [HttpPost("Html2Pdf")]
+        //[Route("Html2Pdf", Name = "Html2Pdf")]
         public async Task<IActionResult> Html2Pdf([FromBody] PdfModel model)
         {
             try

@@ -25,12 +25,24 @@ ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_a
 RUN chmod +x /usr/local/bin/dumb-init
 WORKDIR /app
 EXPOSE 80
+ENV DOTNET_URLS=http://+:80
 
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 
 WORKDIR /src
+
+RUN pwd
+
 COPY . .
+
+RUN ls -lah
+
+RUN cat nuget.config
+
+#RUN cd src
+
+#COPY Controllers .
 
 
 RUN dotnet restore --configfile nuget.config
