@@ -47,5 +47,6 @@ FROM base AS final
 WORKDIR /app
 ENV PUPPETEER_EXECUTABLE_PATH "/usr/bin/google-chrome-stable"
 COPY --from=publish /app .
-RUN npm install
+RUN npm install \
+&& chown -R $(id -u):$(id -g) node_modules
 ENTRYPOINT ["dotnet", "madpdf.dll"]
