@@ -1,11 +1,11 @@
-FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
 
 
 # See https://crbug.com/795759
 RUN apt-get update && apt-get install -yq libgconf-2-4
 RUN apt-get update && apt-get install -y curl
 # Install Nodejs
-RUN curl -sL https://deb.nodesource.com/setup_current.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
 RUN apt-get install -y nodejs
 
 
@@ -27,7 +27,7 @@ WORKDIR /app
 EXPOSE 80
 
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 
 WORKDIR /src
 COPY . .
@@ -47,5 +47,6 @@ FROM base AS final
 WORKDIR /app
 ENV PUPPETEER_EXECUTABLE_PATH "/usr/bin/google-chrome-stable"
 COPY --from=publish /app .
-RUN npm install
+RUN npm install \
+&& chown -R $(id -u):$(id -g) node_modules
 ENTRYPOINT ["dotnet", "madpdf.dll"]

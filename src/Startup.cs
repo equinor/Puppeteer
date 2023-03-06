@@ -1,20 +1,15 @@
 ﻿using System;
-using System.IO;
-using System.Reflection;
 using madpdf.Models;
 using Microsoft.ApplicationInsights;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using PuppeteerSharp;
-using Statoil.MadCommon;
-using Statoil.MadCommon.Authentication;
+using Microsoft.Identity.Web;
+using Hellang.Middleware.ProblemDetails;
+
 
 namespace madpdf
 {
@@ -38,8 +33,16 @@ namespace madpdf
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddMicrosoftIdentityWebApiAuthentication(this.Configuration, "AzureAd", "Bearer", false);
+
+            services.AddProblemDetails(o =>
+            {
+                o.IncludeExceptionDetails = (ctx, ex) => true;
+            });
+
             // Configure options
             services.AddOptions();
+            services.AddRouting(options => options.LowercaseUrls = true);
 
             // Configure logging
             services.AddLogging(builder => builder
@@ -58,45 +61,16 @@ namespace madpdf
             services.AddApiVersioning(o => o.ReportApiVersions = true);
 
             services.AddVersionedApiExplorer(o => o.GroupNameFormat = "'v'VVV");
-
-            // Configure authentication
-            services.AddAuthentication(o =>
-                {
-                    o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                    o.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                })
-                .AddCookie()
-                .AddJwtBearer(o =>
-                {
-                    o.Authority = Configuration["AzureAd:Authority"];
-                    o.Audience = Configuration["AzureAd:ClientId"];
-#if DEBUG
-                    o.RequireHttpsMetadata = false;
-#endif
-                });
-
-            // Add Swagger
-            Bootstrap.AddSwagger(services, "Equinor PDF API", GetSwaggerDocPath());
-        }
-
-        private string GetSwaggerDocPath()
-        {
-            // Set the comments path for the Swagger JSON and UI.
-            var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-            return xmlPath;
         }
 
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory,
-            TelemetryClient telemetryClient, IServiceProvider serviceProvider, IApiVersionDescriptionProvider provider)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory, TelemetryClient telemetryClient, IServiceProvider serviceProvider, IApiVersionDescriptionProvider provider)
         {
-            app.UseAuthentication();
             app.UseResponseCompression();
             MapsterConfiguration.Configure();
-            Bootstrap.AddDefaultExceptionHandling(app, telemetryClient);
+            app.UseProblemDetails();
+
 
             app.UseAuthentication();
 
@@ -106,11 +80,8 @@ namespace madpdf
                         .WithOrigins("http://localhost:5001")
                         .AllowAnyHeader()
                         .AllowAnyMethod());
-            if (Convert.ToBoolean(Configuration["CertificateValidation:Enabled"]))
-                app.UseClientCertificateAuthentication();
 
             app.UseMvc();
-            Bootstrap.UseSwagger(app, provider, env);
         }
     }
 }
