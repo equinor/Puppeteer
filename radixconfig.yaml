@@ -1,0 +1,63 @@
+apiVersion: radix.equinor.com/v1
+kind: RadixApplication
+metadata:
+  name: mad-pdf
+spec:
+  environments:
+    - name: prod
+      build:
+        from: master
+    - name: test
+      build:
+        from: test
+    - name: dev
+      build:
+        from: dev
+
+  components:
+    - name: mad-pdf
+      src: .
+      ports:
+        - name: http
+          port: 5000
+      publicPort: http
+      monitoring: true
+      environmentConfig:
+        - environment: prod
+          replicas: 1
+          variables:
+            ASPNETCORE_ENVIRONMENT: "prod"
+            AllowCorsDomains: ""
+          resources:
+            requests:
+              memory: "2048Mi"
+              cpu: "1600m"
+            limits:
+              memory: "2048Mi"
+              cpu: "160m"
+        - environment: test
+          replicas: 1
+          variables:
+            ASPNETCORE_ENVIRONMENT: "test"
+            AllowCorsDomains: ""
+          resources:
+            requests:
+              memory: "2048Mi"
+              cpu: "160m"
+            limits:
+              memory: "2048Mi"
+              cpu: "160m"
+        - environment:
+          replicas: 1
+          variables:
+            ASPNETCORE_ENVIRONMENT: "dev"
+            AllowCorsDomains: ""
+          resources:
+            requests:
+              memory: "2048Mi"
+              cpu: "160m"
+            limits:
+              memory: "2048Mi"
+              cpu: "160m"
+      secrets:
+        - AzureAdClientSecret
